@@ -5,20 +5,19 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-import java.awt.Font;
 import util.ImageLoader;
 
-public class PausedScreen {
+public class InstructionScreen {
     
     private Dimension screenSize;
     protected BufferedImage img;
 
-    public PausedScreen(int screenW, int screenH){
+    public InstructionScreen(int screenW, int screenH){
         this.screenSize = new Dimension(screenW, screenH);
-        img = ImageLoader.loadImage("assets/pausedScreen.png");
+        img = ImageLoader.loadImage("assets/instructionsScreen.png");
     }
 
-    public void drawPausedScreen(Graphics2D g2){
+    public void drawInstructionScreen(Graphics2D g2){
         g2.drawImage(img, 0, 0, screenSize.width, screenSize.height, null);
     }
 
@@ -27,7 +26,7 @@ public class PausedScreen {
 		
         if (x > 500 && x < 800 && y > 600 && y < 750) {
 			clicked = true;
-        }    
+        }
 		
 		return clicked;
 	}

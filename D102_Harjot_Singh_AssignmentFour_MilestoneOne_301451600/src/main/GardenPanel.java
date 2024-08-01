@@ -19,7 +19,6 @@ import fenceDecorator.BagDecor;
 import fenceDecorator.SimpleFence;
 import fenceDecorator.WoodDecor;
 import fenceDecorator.FenceDecorInterface;
-import fenceDecorator.FenceDecor;
 import garden.Garden;
 import garden.Sparkle;
 import sidebar.Carrot;
@@ -34,13 +33,14 @@ import sidebar.WaterCan;
 import garden.Dirt;
 import garden.Fence;
 import ui.Button;
+import ui.IconButton;
+import ui.InstructionScreen;
 import ui.Instructions;
 import ui.IntoScreen;
 import ui.PausedScreen;
 import ui.SellingScreen;
+import ui.Sun;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import util.MinimHelper;
@@ -68,6 +68,7 @@ public class GardenPanel extends JPanel implements ActionListener {
     private Lettuce lettuce;
     private WaterCan waterCan;
     private Sparkle cloud = null;
+    private Sun sun;
 
     private int sidebarX = W_WIDTH - 60;
     private int sidebarYStart = 200;
@@ -94,6 +95,10 @@ public class GardenPanel extends JPanel implements ActionListener {
     private int tomatoReady = 0;
 
     FenceDecorInterface fence;
+    private IconButton emptyFenceButton;
+    private IconButton woodDecorButton;
+    private IconButton bagsDecorButton;
+    private IconButton fullFenceButton;
 
     private boolean drawSparkle = false;
 
@@ -103,6 +108,7 @@ public class GardenPanel extends JPanel implements ActionListener {
     private IntoScreen introScreen;
     private PausedScreen pausedScreen;
     private SellingScreen sellingScreen;
+    private InstructionScreen instructionScreen;
 
     private JFrame frame;
 
@@ -123,6 +129,7 @@ public class GardenPanel extends JPanel implements ActionListener {
         waterCan = new WaterCan(sidebarX, sidebarYStart + 5 * spacing, 1);
         digger = new Digger(sidebarX, sidebarYStart + 6 * spacing, 0.7);
         pausePlayButton = new Button(10, 10);
+        sun = new Sun();
 
         DirtArr = new ArrayList<>();
         FenceArr = new ArrayList<>();
@@ -140,21 +147,10 @@ public class GardenPanel extends JPanel implements ActionListener {
         introScreen = new IntoScreen(W_WIDTH, W_HEIGHT);
         pausedScreen = new PausedScreen(W_WIDTH, W_HEIGHT);
 
-            JButton simpleFence = new JButton("Empty Bays");
-            add(simpleFence);
-            simpleFence.addActionListener(this);
-
-            JButton woodDecor = new JButton("Add Wood");
-            add(woodDecor);
-            woodDecor.addActionListener(this);
-
-            JButton bagDecor = new JButton("Add Bags");
-            add(bagDecor);
-            bagDecor.addActionListener(this);
-
-            JButton fullBays = new JButton("Full Bays");
-            add(fullBays);
-            fullBays.addActionListener(this);
+        emptyFenceButton = new IconButton(40, W_HEIGHT - 180, "Empty Fence");
+        woodDecorButton = new IconButton(40, W_HEIGHT - 140, "Add Wood");
+        bagsDecorButton = new IconButton(40, W_HEIGHT - 100, "Add Bags");
+        fullFenceButton = new IconButton(40, W_HEIGHT - 60, "Full Fence");
 
         fence = new SimpleFence(300, W_HEIGHT - 100);
 
@@ -183,8 +179,15 @@ public class GardenPanel extends JPanel implements ActionListener {
 
             fence.showFence(g2);
 
+            emptyFenceButton.drawButton(g2);
+            woodDecorButton.drawButton(g2);
+            bagsDecorButton.drawButton(g2);
+            fullFenceButton.drawButton(g2);
+
             g2.setColor(new Color(0, 0, 0, light));
             g2.fillRect(0, 0, W_WIDTH, W_HEIGHT);
+
+            
 
             // SIDEBAR
             sidebar.drawSidebar(g2);
@@ -220,13 +223,19 @@ public class GardenPanel extends JPanel implements ActionListener {
             g2.drawString("Tomato: " + tomatoReady, W_WIDTH - 150 - stringWidth, 110);
             g2.drawString("Corn: " + cornReady, W_WIDTH - 150 - stringWidth, 140);
 
+            AffineTransform treeSet = g2.getTransform();
+            g2.translate(-100, -100);
+            g2.scale(0.5, 0.5);
+            sun.drawSun(g2, 300, 300, 100, 6);
+            g2.setTransform(treeSet);
+
             g2.setTransform(originalTransform);
 
             if(paused){
                 pausedScreen.drawPausedScreen(g2);
             }
 
-            pausePlayButton.drawButton(g2);
+            // pausePlayButton.drawButto-n(g2);
         }else if(gameState == 2){
             sellingScreen.drawSellingScreen(g2);
         }
@@ -252,69 +261,72 @@ public class GardenPanel extends JPanel implements ActionListener {
                 }
             }
     
-            if (pick.getMouseFollowing()) {
-                pick.setPos(mouseX, mouseY);
-            }
-            if (tomato.getMouseFollowing()) {
-                tomato.setPos(mouseX, mouseY);
-            }
-            if (carrot.getMouseFollowing()) {
-                carrot.setPos(mouseX, mouseY);
-            }
-            if (digger.getMouseFollowing()) {
-                digger.setPos(mouseX, mouseY);
-            }
-            if (corn.getMouseFollowing()) {
-                corn.setPos(mouseX, mouseY);
-            }
-            if (lettuce.getMouseFollowing()) {
-                lettuce.setPos(mouseX, mouseY);
-            }
-            if (waterCan.getMouseFollowing()) {
-                waterCan.setPos(mouseX, mouseY);
-            }
-    
-            for (int i = 0; i < DirtArr.size(); i++) {
-                Dirt currentDirt = DirtArr.get(i);
-                currentDirt.update();
-    
-                if (currentDirt.getDirtState() == 0) {
-                    if (currentDirt.isColliding(pick)) {
-                        currentDirt.setDirtImg(1);
-                    }
+            if(!paused){
+                if (pick.getMouseFollowing()) {
+                    pick.setPos(mouseX, mouseY);
                 }
-    
-                if (currentDirt.getGrowthStage() == 3) {
-                    if (currentDirt.isColliding(digger)) {
-                        currentDirt.setGrowthStage(4);
-                        if(currentDirt.getVegetableState() == 1){
-                            carrotReady ++;
-                        }else if(currentDirt.getVegetableState() == 2){
-                            tomatoReady ++;
-                        }else if(currentDirt.getVegetableState() == 3){
-                            cornReady ++;
-                        }else if(currentDirt.getVegetableState() == 4){
-                            lettuceReady ++;
+                if (tomato.getMouseFollowing()) {
+                    tomato.setPos(mouseX, mouseY);
+                }
+                if (carrot.getMouseFollowing()) {
+                    carrot.setPos(mouseX, mouseY);
+                }
+                if (digger.getMouseFollowing()) {
+                    digger.setPos(mouseX, mouseY);
+                }
+                if (corn.getMouseFollowing()) {
+                    corn.setPos(mouseX, mouseY);
+                }
+                if (lettuce.getMouseFollowing()) {
+                    lettuce.setPos(mouseX, mouseY);
+                }
+                if (waterCan.getMouseFollowing()) {
+                    waterCan.setPos(mouseX, mouseY);
+                }
+        
+                for (int i = 0; i < DirtArr.size(); i++) {
+                    Dirt currentDirt = DirtArr.get(i);
+                    currentDirt.update();
+        
+                    if (currentDirt.getDirtState() == 0) {
+                        if (currentDirt.isColliding(pick)) {
+                            currentDirt.setDirtImg(1);
+                        }
+                    }
+        
+                    if (currentDirt.getGrowthStage() == 3) {
+                        if (currentDirt.isColliding(digger)) {
+                            currentDirt.setGrowthStage(4);
+                            if(currentDirt.getVegetableState() == 1){
+                                carrotReady ++;
+                            }else if(currentDirt.getVegetableState() == 2){
+                                tomatoReady ++;
+                            }else if(currentDirt.getVegetableState() == 3){
+                                cornReady ++;
+                            }else if(currentDirt.getVegetableState() == 4){
+                                lettuceReady ++;
+                            }
+                        }
+                    }
+        
+                    if (currentDirt.getDirtState() == 1) {
+                        if (currentDirt.isColliding(carrot)) {
+                            currentDirt.setVegetableState(1);
+                            currentDirt.setDayOfPlant(day);
+                        } else if (currentDirt.isColliding(tomato)) {
+                            currentDirt.setVegetableState(2);
+                            currentDirt.setDayOfPlant(day);
+                        } else if (currentDirt.isColliding(corn)) {
+                            currentDirt.setVegetableState(3);
+                            currentDirt.setDayOfPlant(day);
+                        } else if (currentDirt.isColliding(lettuce)) {
+                            currentDirt.setVegetableState(4);
+                            currentDirt.setDayOfPlant(day);
                         }
                     }
                 }
-    
-                if (currentDirt.getDirtState() == 1) {
-                    if (currentDirt.isColliding(carrot)) {
-                        currentDirt.setVegetableState(1);
-                        currentDirt.setDayOfPlant(day);
-                    } else if (currentDirt.isColliding(tomato)) {
-                        currentDirt.setVegetableState(2);
-                        currentDirt.setDayOfPlant(day);
-                    } else if (currentDirt.isColliding(corn)) {
-                        currentDirt.setVegetableState(3);
-                        currentDirt.setDayOfPlant(day);
-                    } else if (currentDirt.isColliding(lettuce)) {
-                        currentDirt.setVegetableState(4);
-                        currentDirt.setDayOfPlant(day);
-                    }
-                }
             }
+            
     
             for(int i=0; i < DirtArr.size(); i++){
                 Dirt currentDirt = DirtArr.get(i);
@@ -351,13 +363,17 @@ public class GardenPanel extends JPanel implements ActionListener {
             }
     
             if(!hasDug){
-                instructions = new Instructions(W_WIDTH / 2 + 200, W_HEIGHT - 100, "Grab the shovel and dig the mud to prepare for planting!", "shovel");
+                instructions = new Instructions(W_WIDTH / 2 + 150, W_HEIGHT - 100, "Grab the shovel and dig the mud to prepare for planting!", "shovel");
                 timeOfDay = timeOfDay;
             }
             else if(!hasWatered && hasPlanted && timeOfDay == 840){
-                instructions = new Instructions(W_WIDTH / 2 + 200, W_HEIGHT - 100, "Water your garden!", "waterCan");
+                instructions = new Instructions(W_WIDTH / 2 + 150, W_HEIGHT - 100, "Water your garden!", "waterCan");
                 timeOfDay = timeOfDay;
-            }else{
+            }else if(!hasPlanted){
+                instructions = new Instructions(W_WIDTH / 2 + 150, W_HEIGHT - 100, "Plant the carrots in the dug up places!", "carrots");
+                timeOfDay = timeOfDay;
+            }
+            else{
                 timeOfDay = (timeOfDay + incr) % (24 * 60);
             }
     
@@ -371,25 +387,6 @@ public class GardenPanel extends JPanel implements ActionListener {
                 for(int i = 0; i < DirtArr.size();  i++){
                     DirtArr.get(i).addDay();
                 }
-            }
-
-            if (e.getActionCommand() == "Empty Bays") {
-                fence = new SimpleFence(300, W_HEIGHT - 100);
-            }
-            
-            if (e.getActionCommand() == "Add Bags") {
-                FenceDecorInterface baseFence = new SimpleFence(300, W_HEIGHT - 100);
-                fence = new BagDecor(300, W_HEIGHT - 100, baseFence);
-            }
-
-            if (e.getActionCommand() == "Add Wood") {
-                FenceDecorInterface baseFence = new SimpleFence(300, W_HEIGHT - 100);
-                fence = new WoodDecor(300, W_HEIGHT - 100, baseFence);
-            }
-
-            if (e.getActionCommand() == "Full Bays") {
-                FenceDecorInterface baseFence = new BagDecor(300, W_HEIGHT - 100, new SimpleFence(300, W_HEIGHT - 100));
-                fence = new WoodDecor(300, W_HEIGHT - 100, baseFence);
             }
 
             pausePlayButton.update();
@@ -411,6 +408,19 @@ public class GardenPanel extends JPanel implements ActionListener {
             if (introScreen.clicked(mouseX, mouseY)) {
                 timer.start();
                 gameState = 1;
+            }
+
+            if(emptyFenceButton.clicked(mouseX, mouseY)){
+                fence = new SimpleFence(300, W_HEIGHT - 100);
+            }else if(woodDecorButton.clicked(mouseX, mouseY)){
+                FenceDecorInterface baseFence = new SimpleFence(300, W_HEIGHT - 100);
+                fence = new WoodDecor(300, W_HEIGHT - 100, baseFence);
+            }else if(bagsDecorButton.clicked(mouseX, mouseY)){
+                FenceDecorInterface baseFence = new SimpleFence(300, W_HEIGHT - 100);
+                fence = new BagDecor(300, W_HEIGHT - 100, baseFence);
+            }else if(fullFenceButton.clicked(mouseX, mouseY)){
+                FenceDecorInterface baseFence = new BagDecor(300, W_HEIGHT - 100, new SimpleFence(300, W_HEIGHT - 100));
+                fence = new WoodDecor(300, W_HEIGHT - 100, baseFence);
             }
 
             // if (pausePlayButton.clicked(mouseX, mouseY)) {
@@ -490,10 +500,8 @@ public class GardenPanel extends JPanel implements ActionListener {
     }
 
     private void restartApplication() {
-        // Dispose of the current frame
         frame.dispose();
 
-        // Create a new JFrame
         JFrame newFrame = new JFrame("Garden Game");
         newFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         newFrame.setSize(W_WIDTH, W_HEIGHT);

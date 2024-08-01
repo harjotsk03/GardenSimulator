@@ -1,0 +1,12 @@
+Assignment 4 Milestone 2
+
+IAT 265 D102
+Harjot Singh 301451600
+
+
+The perlin noise is implemented in a class called Sparkle and called in the dirt class when the growth stage reaches 4
+
+The fractal is implimented in the Sun class and is drawing a sun in our environment 
+
+The decorator pattern is a fenced area where we can add either bags, or wood or both to the fenced area dynamically with the buttons it is located in the fencedDecorator package and is called in the main gardenPanel
+
